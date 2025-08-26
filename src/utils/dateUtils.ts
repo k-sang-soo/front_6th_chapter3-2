@@ -108,3 +108,17 @@ export function formatDate(currentDate: Date, day?: number) {
     fillZero(day ?? currentDate.getDate()),
   ].join('-');
 }
+
+/**
+ * 주어진 년, 월, 일이 실제로 존재하는 날짜인지 확인합니다.
+ * 31일 매월 반복, 윤년 2월 29일 등의 엣지 케이스를 처리합니다.
+ */
+export function isActualDateExists(year: number, month: number, day: number): boolean {
+  // month는 0-based이므로 1을 빼줍니다
+  const date = new Date(year, month - 1, day);
+  
+  // Date 객체가 자동으로 조정된 경우 (예: 2월 30일 → 3월 2일) 원래 값과 다름
+  return date.getFullYear() === year && 
+         date.getMonth() === month - 1 && 
+         date.getDate() === day;
+}
