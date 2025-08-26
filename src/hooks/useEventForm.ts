@@ -1,4 +1,5 @@
 import { ChangeEvent, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Event, RepeatType } from '../types';
 import { getTimeErrorMessage } from '../utils/timeValidation';
@@ -69,6 +70,29 @@ export const useEventForm = (initialEvent?: Event) => {
     setNotificationTime(event.notificationTime);
   };
 
+  // 반복 이벤트용 UUID 생성
+  const generateRepeatId = () => {
+    return uuidv4();
+  };
+
+  // endDate 유효성 검사
+  const validateEndDate = (endDate: string): string | null => {
+    if (!endDate) return null;
+    
+    const maxDate = new Date('2025-10-30');
+    const selectedDate = new Date(endDate);
+    
+    if (selectedDate > maxDate) {
+      return '반복 종료일은 2025-10-30까지만 선택 가능합니다.';
+    }
+    
+    if (date && selectedDate < new Date(date)) {
+      return '반복 종료일은 시작일 이후여야 합니다.';
+    }
+    
+    return null;
+  };
+
   return {
     title,
     setTitle,
@@ -102,5 +126,7 @@ export const useEventForm = (initialEvent?: Event) => {
     handleEndTimeChange,
     resetForm,
     editEvent,
+    generateRepeatId,
+    validateEndDate,
   };
 };
