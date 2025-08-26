@@ -92,9 +92,10 @@ function App() {
     handleEndTimeChange,
     resetForm,
     editEvent,
+    generateRepeatId,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
+  const { events, saveEvent, deleteEvent, saveRepeatEvents } = useEventOperations(Boolean(editingEvent), () =>
     setEditingEvent(null)
   );
 
@@ -140,7 +141,13 @@ function App() {
       setOverlappingEvents(overlapping);
       setIsOverlapDialogOpen(true);
     } else {
-      await saveEvent(eventData);
+      // 반복 일정 처리
+      if (isRepeating && repeatType !== 'none' && repeatEndDate) {
+        const repeatId = generateRepeatId();
+        await saveRepeatEvents(eventData, repeatId);
+      } else {
+        await saveEvent(eventData);
+      }
       resetForm();
     }
   };
