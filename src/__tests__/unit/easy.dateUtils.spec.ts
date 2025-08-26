@@ -8,6 +8,7 @@ import {
   getEventsForDay,
   getWeekDates,
   getWeeksAtMonth,
+  isActualDateExists,
   isDateInRange,
 } from '../../utils/dateUtils';
 
@@ -274,6 +275,58 @@ describe('fillZero', () => {
 
   it('value가 지정된 size보다 큰 자릿수를 가지면 원래 값을 그대로 반환한다', () => {
     expect(fillZero(1000, 3)).toBe('1000');
+  });
+});
+
+describe('isActualDateExists', () => {
+  it('유효한 날짜 2024년 2월 29일(윤년)에 대해 true를 반환한다', () => {
+    expect(isActualDateExists(2024, 2, 29)).toBe(true);
+  });
+
+  it('유효하지 않은 날짜 2023년 2월 29일(평년)에 대해 false를 반환한다', () => {
+    expect(isActualDateExists(2023, 2, 29)).toBe(false);
+  });
+
+  it('31일이 있는 달의 31일에 대해 true를 반환한다', () => {
+    expect(isActualDateExists(2025, 1, 31)).toBe(true); // 1월
+    expect(isActualDateExists(2025, 3, 31)).toBe(true); // 3월
+    expect(isActualDateExists(2025, 5, 31)).toBe(true); // 5월
+    expect(isActualDateExists(2025, 7, 31)).toBe(true); // 7월
+    expect(isActualDateExists(2025, 8, 31)).toBe(true); // 8월
+    expect(isActualDateExists(2025, 10, 31)).toBe(true); // 10월
+    expect(isActualDateExists(2025, 12, 31)).toBe(true); // 12월
+  });
+
+  it('30일까지만 있는 달의 31일에 대해 false를 반환한다', () => {
+    expect(isActualDateExists(2025, 4, 31)).toBe(false); // 4월
+    expect(isActualDateExists(2025, 6, 31)).toBe(false); // 6월
+    expect(isActualDateExists(2025, 9, 31)).toBe(false); // 9월
+    expect(isActualDateExists(2025, 11, 31)).toBe(false); // 11월
+  });
+
+  it('일반적인 유효한 날짜에 대해 true를 반환한다', () => {
+    expect(isActualDateExists(2025, 7, 15)).toBe(true);
+    expect(isActualDateExists(2025, 12, 1)).toBe(true);
+    expect(isActualDateExists(2025, 2, 28)).toBe(true); // 평년 2월 28일
+  });
+
+  it('0일 또는 음수 일에 대해 false를 반환한다', () => {
+    expect(isActualDateExists(2025, 7, 0)).toBe(false);
+    expect(isActualDateExists(2025, 7, -1)).toBe(false);
+  });
+
+  it('유효하지 않은 월에 대해 false를 반환한다', () => {
+    expect(isActualDateExists(2025, 0, 15)).toBe(false);
+    expect(isActualDateExists(2025, 13, 15)).toBe(false);
+    expect(isActualDateExists(2025, -1, 15)).toBe(false);
+  });
+
+  it('엣지 케이스: 윤년과 평년의 2월을 정확히 구분한다', () => {
+    // 윤년 확인 (4의 배수이면서 100의 배수가 아니거나, 400의 배수)
+    expect(isActualDateExists(2000, 2, 29)).toBe(true); // 400의 배수 (윤년)
+    expect(isActualDateExists(1900, 2, 29)).toBe(false); // 100의 배수지만 400의 배수가 아님 (평년)
+    expect(isActualDateExists(2004, 2, 29)).toBe(true); // 4의 배수 (윤년)
+    expect(isActualDateExists(2001, 2, 29)).toBe(false); // 평년
   });
 });
 
