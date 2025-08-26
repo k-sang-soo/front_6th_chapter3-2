@@ -470,6 +470,11 @@ function App() {
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
+                    slotProps={{ 
+                      htmlInput: { 
+                        max: '2025-10-30' 
+                      } 
+                    }}
                   />
                 </FormControl>
               </Stack>
