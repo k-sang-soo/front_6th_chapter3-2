@@ -95,8 +95,9 @@ function App() {
     generateRepeatId,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent, saveRepeatEvents } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
+  const { events, saveEvent, deleteEvent, saveRepeatEvents } = useEventOperations(
+    Boolean(editingEvent),
+    () => setEditingEvent(null)
   );
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
@@ -477,10 +478,10 @@ function App() {
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
-                    slotProps={{ 
-                      htmlInput: { 
-                        max: '2025-10-30' 
-                      } 
+                    slotProps={{
+                      htmlInput: {
+                        max: '2025-10-30',
+                      },
                     }}
                   />
                 </FormControl>

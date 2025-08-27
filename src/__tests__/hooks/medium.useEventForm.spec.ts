@@ -1,4 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+
 import { useEventForm } from '../../hooks/useEventForm';
 import { Event } from '../../types';
 
@@ -205,9 +207,9 @@ describe('useEventForm', () => {
   describe('UUID 생성', () => {
     it('generateRepeatId는 유효한 UUID를 반환한다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       const uuid = result.current.generateRepeatId();
-      
+
       // UUID v4 형식 검증 (8-4-4-4-12 패턴)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       expect(uuid).toMatch(uuidRegex);
@@ -215,67 +217,141 @@ describe('useEventForm', () => {
 
     it('generateRepeatId는 매번 다른 UUID를 반환한다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       const uuid1 = result.current.generateRepeatId();
       const uuid2 = result.current.generateRepeatId();
-      
+
       expect(uuid1).not.toBe(uuid2);
+    });
+  });
+
+  describe('RepeatInfo 확장 기능 테스트', () => {
+    it('반복 이벤트의 id 필드가 올바르게 설정된다', () => {
+      const repeatEvent: Event = {
+        id: '1',
+        title: '반복 이벤트',
+        date: '2025-07-15',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: {
+          id: 'repeat-uuid-123',
+          type: 'weekly',
+          interval: 1,
+          endDate: '2025-08-15',
+          skipInvalidDates: true,
+        },
+        notificationTime: 10,
+      };
+
+      const { result } = renderHook(() => useEventForm(repeatEvent));
+
+      expect(result.current.repeatType).toBe('weekly');
+      expect(result.current.repeatEndDate).toBe('2025-08-15');
+    });
+
+    it('skipInvalidDates 필드가 기존 이벤트와 호환된다', () => {
+      const basicEvent: Event = {
+        id: '1',
+        title: '기본 이벤트',
+        date: '2025-07-15',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: { type: 'none', interval: 1 }, // skipInvalidDates 필드 없음
+        notificationTime: 10,
+      };
+
+      const { result } = renderHook(() => useEventForm(basicEvent));
+
+      // 기존 이벤트도 정상적으로 처리됨
+      expect(result.current.repeatType).toBe('none');
+      expect(result.current.isRepeating).toBe(false);
+    });
+
+    it('endDate 필드 확장이 기존 Event 인터페이스와 호환된다', () => {
+      const eventWithEndDate: Event = {
+        id: '1',
+        title: '종료일 있는 이벤트',
+        date: '2025-07-15',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: {
+          type: 'daily',
+          interval: 1,
+          endDate: '2025-08-15',
+        },
+        notificationTime: 10,
+      };
+
+      const { result } = renderHook(() => useEventForm(eventWithEndDate));
+
+      expect(result.current.repeatType).toBe('daily');
+      expect(result.current.repeatEndDate).toBe('2025-08-15');
+      expect(result.current.isRepeating).toBe(true);
     });
   });
 
   describe('endDate 유효성 검증', () => {
     it('빈 endDate는 유효하다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       const error = result.current.validateEndDate('');
-      
+
       expect(error).toBeNull();
     });
 
     it('2025-10-30 이후의 날짜는 유효하지 않다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       const error = result.current.validateEndDate('2025-10-31');
-      
+
       expect(error).toBe('반복 종료일은 2025-10-30까지만 선택 가능합니다.');
     });
 
     it('시작일보다 이른 종료일은 유효하지 않다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       // 시작일 설정
       act(() => {
         result.current.setDate('2025-07-15');
       });
-      
+
       const error = result.current.validateEndDate('2025-07-10');
-      
+
       expect(error).toBe('반복 종료일은 시작일 이후여야 합니다.');
     });
 
     it('유효한 종료일은 에러가 없다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       // 시작일 설정
       act(() => {
         result.current.setDate('2025-07-15');
       });
-      
+
       const error = result.current.validateEndDate('2025-08-15');
-      
+
       expect(error).toBeNull();
     });
 
     it('2025-10-30은 유효한 최대 날짜다', () => {
       const { result } = renderHook(() => useEventForm());
-      
+
       // 시작일 설정
       act(() => {
         result.current.setDate('2025-07-15');
       });
-      
+
       const error = result.current.validateEndDate('2025-10-30');
-      
+
       expect(error).toBeNull();
     });
   });

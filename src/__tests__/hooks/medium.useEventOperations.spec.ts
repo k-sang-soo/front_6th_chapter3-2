@@ -248,7 +248,7 @@ describe('반복 이벤트 생성', () => {
     expect(events[0].date).toBe('2025-07-15');
     expect(events[1].date).toBe('2025-07-16');
     expect(events[2].date).toBe('2025-07-17');
-    events.forEach(event => {
+    events.forEach((event) => {
       expect(event.repeat.id).toBe('test-uuid');
       expect(event.repeat.skipInvalidDates).toBe(true);
     });
@@ -279,7 +279,7 @@ describe('반복 이벤트 생성', () => {
     expect(events.length).toBeGreaterThan(0);
     expect(events[0].date).toBe('2025-01-31');
     // 유효한 날짜만 생성되는지 확인
-    events.forEach(event => {
+    events.forEach((event) => {
       const [year, month, day] = event.date.split('-').map(Number);
       expect(year).toBeGreaterThanOrEqual(2025);
       expect(month).toBeGreaterThanOrEqual(1);
@@ -314,7 +314,7 @@ describe('반복 이벤트 생성', () => {
     expect(events.length).toBeGreaterThan(0);
     expect(events[0].date).toBe('2024-02-29');
     // 생성된 모든 이벤트가 유효한 날짜인지 검증
-    events.forEach(event => {
+    events.forEach((event) => {
       const [year, month, day] = event.date.split('-').map(Number);
       const dateObj = new Date(year, month - 1, day);
       expect(dateObj.getFullYear()).toBe(year);
@@ -350,7 +350,9 @@ describe('반복 이벤트 생성', () => {
       await result.current.saveRepeatEvents(baseEvent, 'test-uuid');
     });
 
-    expect(enqueueSnackbarFn).toHaveBeenCalledWith('반복 일정 2개가 생성되었습니다.', { variant: 'success' });
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('반복 일정 2개가 생성되었습니다.', {
+      variant: 'success',
+    });
   });
 
   it('반복 이벤트 저장 실패 시 에러 처리가 된다', async () => {

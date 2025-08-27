@@ -75,7 +75,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     const events: EventForm[] = [];
     const startDate = new Date(baseEvent.date);
     const endDate = baseEvent.repeat.endDate ? new Date(baseEvent.repeat.endDate) : null;
-    
+
     if (baseEvent.repeat.type === 'none' || !endDate) {
       return [{ ...baseEvent, repeat: { ...baseEvent.repeat, id: undefined } }];
     }
@@ -92,15 +92,15 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       // 날짜 유효성 검증 - 엣지 케이스 스킵
       if (isActualDateExists(year, month, day)) {
         const eventDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
+
         events.push({
           ...baseEvent,
           date: eventDate,
           repeat: {
             ...baseEvent.repeat,
             id: repeatId,
-            skipInvalidDates: true
-          }
+            skipInvalidDates: true,
+          },
         });
         eventsCreated++;
       }
@@ -111,7 +111,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
           currentDate.setDate(currentDate.getDate() + baseEvent.repeat.interval);
           break;
         case 'weekly':
-          currentDate.setDate(currentDate.getDate() + (baseEvent.repeat.interval * 7));
+          currentDate.setDate(currentDate.getDate() + baseEvent.repeat.interval * 7);
           break;
         case 'monthly':
           currentDate.setMonth(currentDate.getMonth() + baseEvent.repeat.interval);
@@ -129,7 +129,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const saveRepeatEvents = async (eventData: EventForm, repeatId: string) => {
     try {
       const repeatEvents = generateRepeatEvents(eventData, repeatId);
-      
+
       // 각 이벤트를 개별적으로 저장
       for (const event of repeatEvents) {
         const response = await fetch('/api/events', {
