@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Event, EventForm } from '../types';
 import { isActualDateExists } from '../utils/dateUtils';
 
-export const useEventOperations = (editing: boolean, onSave?: () => void) => {
+export const useEventOperations = (onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -24,9 +24,10 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
 
   const saveEvent = async (eventData: Event | EventForm) => {
     try {
+      const isEditing = 'id' in eventData && eventData.id;
       let response;
-      if (editing) {
-        response = await fetch(`/api/events/${(eventData as Event).id}`, {
+      if (isEditing) {
+        response = await fetch(`/api/events/${eventData.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData),
@@ -45,7 +46,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
 
       await fetchEvents();
       onSave?.();
-      enqueueSnackbar(editing ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.', {
+      enqueueSnackbar(isEditing ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.', {
         variant: 'success',
       });
     } catch (error) {
@@ -85,9 +86,20 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     const maxEvents = 365; // 안전장치: 최대 365개 이벤트
 
     while (currentDate <= endDate && eventsCreated < maxEvents) {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1;
-      const day = currentDate.getDate();
+      let year, month, day;
+
+      // 반복 타입에 따라 원본 정보를 사용하여 유효성 검증
+      if (baseEvent.repeat.type === 'yearly') {
+        // yearly의 경우 원본 월/일 정보를 사용하여 검증
+        year = currentDate.getFullYear();
+        month = startDate.getMonth() + 1; // 원본 월
+        day = startDate.getDate(); // 원본 일
+      } else {
+        // 다른 경우는 현재 날짜 정보 사용
+        year = currentDate.getFullYear();
+        month = currentDate.getMonth() + 1;
+        day = currentDate.getDate();
+      }
 
       // 날짜 유효성 검증 - 엣지 케이스 스킵
       if (isActualDateExists(year, month, day)) {
@@ -113,10 +125,15 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
         case 'weekly':
           currentDate.setDate(currentDate.getDate() + baseEvent.repeat.interval * 7);
           break;
-        case 'monthly':
+        case 'monthly': {
+          // 월 증가 시 원래 일자 보존을 위해 안전한 방식 사용
+          const originalDay = startDate.getDate();
           currentDate.setMonth(currentDate.getMonth() + baseEvent.repeat.interval);
+          currentDate.setDate(originalDay);
           break;
+        }
         case 'yearly':
+          // 연 증가 시 연도만 증가 (월/일은 원본 유지)
           currentDate.setFullYear(currentDate.getFullYear() + baseEvent.repeat.interval);
           break;
       }

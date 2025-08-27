@@ -96,7 +96,6 @@ function App() {
   } = useEventForm();
 
   const { events, saveEvent, deleteEvent, saveRepeatEvents } = useEventOperations(
-    Boolean(editingEvent),
     () => setEditingEvent(null)
   );
 
